@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fit Takip</title>
+<style>
+:root{--bg:#eef2f4;--cd:#fff;--tx:#14232b;--mu:#62757f;--ln:#d5dfe4;--a:#0e7c86;--y:#e0a526;--r:#c8453b;--g:#3f9b5f;--b:#3a6ea5}
+@media(prefers-color-scheme:dark){:root{--bg:#10191e;--cd:#18252c;--tx:#e6eef1;--mu:#8fa3ad;--ln:#2a3b44;--a:#3cb8c4;--y:#e8b84a;--r:#e66a60;--g:#5cbc7e;--b:#6a9fd6}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 "Segoe UI",system-ui,sans-serif}
+main{max-width:920px;margin:0 auto;padding:16px}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+h1{font-size:22px;margin:0;letter-spacing:-.3px}h2{font-size:16px;margin:0 0 10px}
+nav{display:flex;gap:4px;background:var(--cd);padding:4px;border-radius:10px;border:1px solid var(--ln);margin-bottom:14px;flex-wrap:wrap}
+nav button{flex:1;border:0;background:none;color:var(--mu);padding:8px 12px;border-radius:7px;font:inherit;cursor:pointer}
+nav button.on{background:var(--a);color:#fff}
+.c{background:var(--cd);border:1px solid var(--ln);border-radius:10px;padding:14px;margin-bottom:14px}
+.g{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-bottom:8px}
+label{display:flex;flex-direction:column;font-size:12px;color:var(--mu);gap:2px;flex:1;min-width:90px}
+input,select,button.b{font:inherit;padding:7px 9px;border:1px solid var(--ln);border-radius:7px;background:var(--bg);color:var(--tx)}
+button.b{background:var(--a);color:#fff;border-color:var(--a);cursor:pointer}button.b.s{background:none;color:var(--tx);border-color:var(--ln)}button.b.d{background:none;color:var(--r);border-color:var(--r)}
+:focus-visible{outline:2px solid var(--a);outline-offset:1px}
+.big{font-size:30px;font-weight:700;letter-spacing:-1px}.m{color:var(--mu);font-size:13px}
+.bar{height:9px;background:var(--ln);border-radius:5px;overflow:hidden;margin:4px 0 10px}.bar i{display:block;height:100%;border-radius:5px}
+.st{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}.st div{background:var(--bg);border-radius:8px;padding:10px}.st b{display:block;font-size:20px}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:6px 4px;border-bottom:1px solid var(--ln);text-align:left}th{color:var(--mu);font-weight:500;font-size:12px}
+td.x{text-align:right}.x button{border:0;background:none;color:var(--r);cursor:pointer;font-size:16px}
+svg{width:100%;height:auto}.gl{stroke:var(--ln)}.tx{fill:var(--mu);font-size:10px}
+.hb{display:grid;grid-template-columns:130px 1fr 90px;gap:8px;align-items:center;font-size:13px;margin:4px 0}.hb .bar{margin:0}
+ul.in{padding-left:18px;margin:0}ul.in li{margin:5px 0}
+@media(max-width:700px){input,select{font-size:16px}}#ts{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:8px 14px;border-radius:8px;display:none;z-index:9;max-width:90%}.tk{display:flex;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--ln)}input[type=checkbox]{width:20px;height:20px;padding:0}details.c summary{cursor:pointer}.sc{overflow-x:auto;max-height:440px;overflow-y:auto}.ed input{padding:3px 5px;width:64px}.ed input.t{width:100%;min-width:130px}.ed select{padding:3px;max-width:105px}td button.b{padding:3px 8px;font-size:12px}
+</style></head><body><main>
+<header><h1>Fit Takip</h1><div class="row" style="margin:0"><button class="b s" onclick="cur=add(cur,-1);R()">‹</button><label style="flex:none">Tarih<input type="date" id="dt" onchange="cur=this.value||cur;R()"></label><button class="b s" onclick="cur=add(cur,1);R()">›</button></div></header>
+<nav id="nv"></nav>
+<section id="v"></section>
+</main>
+<div id="ts"></div>
+<script>
+const $=s=>document.querySelector(s),f0=x=>Math.round(x),f1=x=>(Math.round(x*10)/10);
+window.alert=m=>{const t=$('#ts');t.textContent=m;t.style.display='block';clearTimeout(window._t);window._t=setTimeout(()=>t.style.display='none',4000)};
+const KEY='fit_v1';
+const A=[['Yürüyüş',3.5],['Koşu',9.8],['Bisiklet',7.5],['Yüzme',6],['Ağırlık antrenmanı',5],['HIIT',8],['Futbol',7],['Yoga',2.5]];
+const D={bal:['Dengeli',20,50,30],pro:['Yüksek protein',30,40,30],low:['Düşük karbonhidrat',30,25,45],med:['Akdeniz',18,45,37],keto:['Keto',25,5,70]};
+const G={lose:['Kilo ver (−450 kcal/gün)',-450],keep:['Kilomu koru',0],gain:['Kilo al (+350 kcal/gün)',350]};
+const ACT=[[1.2,'Az hareketli (masa başı)'],[1.35,'Hafif hareketli'],[1.5,'Aktif (gün boyu ayakta)']];
+const ML=['Kahvaltı','Öğle','Akşam','Atıştırmalık'],DN=['Paz','Pzt','Sal','Çar','Per','Cum','Cmt'];
+const nz=s=>s.toLocaleLowerCase('tr').replace(/[çğıöşü]/g,c=>({ç:'c',ğ:'g',ı:'i',ö:'o',ş:'s',ü:'u'})[c]);
+const DB=[['Yumurta','yumurta|omlet',155,13,1.1,11,50,50],['Menemen','menemen',110,6,5,8,0,200],['Ekmek','ekmek',265,9,49,3.2,30,60],['Tam buğday ekmek','tam bugday|tam tahil|kepek',250,10,43,4,30,60],['Simit','simit',330,10,58,6,120,120],['Poğaça','pogaca',400,9,40,23,90,90],['Börek','borek',300,9,28,17,0,150],['Tost','tost',270,12,28,11,120,120],['Sandviç','sandvic',250,10,30,9,150,150],['Beyaz peynir','beyaz peynir|peynir',264,17,1.5,21,30,30],['Kaşar','kasar',350,25,1,28,25,25],['Zeytin','zeytin',145,1,4,15,4,30],['Bal','bal',304,.3,82,0,20,20],['Reçel','recel',250,.4,65,0,20,20],['Tereyağı','tereyag',717,.9,.1,81,10,10],['Zeytinyağı','zeytinyag|sivi yag',884,0,0,100,15,15],['Yoğurt','yogurt',61,3.5,4.7,3.3,0,200],['Ayran','ayran',40,2,3,2,0,200],['Süt','sut',61,3.2,4.8,3.3,0,200],['Tavuk göğsü','tavuk gogsu|tavuk|pilic',165,31,0,3.6,0,150],['Tavuk but','tavuk but|but',209,26,0,11,0,150],['Kırmızı et','et|dana|biftek|bonfile',250,26,0,17,0,150],['Kıyma','kiyma',250,17,0,20,0,100],['Köfte','kofte',250,17,6,18,25,100],['Kebap','kebap|adana|urfa',230,20,2,16,0,150],['Döner','doner',217,18,3,15,0,150],['Döner dürüm','durum|doner durum',250,13,23,11,0,220],['İskender','iskender',200,13,12,11,0,300],['Lahmacun','lahmacun',230,10,30,8,120,120],['Pide','pide',270,11,35,9,0,250],['Pizza','pizza',266,11,33,10,110,250],['Hamburger','hamburger|burger',250,13,24,11,0,220],['Mantı','manti',200,8,28,6,0,200],['Sarma','sarma|dolma',150,3,18,7,25,150],['Patlıcan yemeği','karniyarik|musakka|patlican',110,4,8,7,0,250],['Sebze yemeği','sebze|zeytinyagli|taze fasulye|ispanak|bamya|kabak',90,2,9,5,0,200],['Kuru fasulye','kuru fasulye|fasulye|barbunya',120,7,17,2.5,0,200],['Nohut yemeği','nohut',140,7,20,3.5,0,200],['Mercimek çorbası','mercimek|corba',55,3,8,1.5,0,250],['Makarna','makarna|spagetti|eriste',158,6,31,1,0,200],['Pilav','pilav|pirinc',150,2.7,28,2.5,0,150],['Bulgur pilavı','bulgur',115,4,22,.5,0,150],['Patates','patates',87,2,20,.1,0,150],['Patates kızartması','patates kizartmasi|kizartma',312,3.4,41,15,0,150],['Salata','salata',35,1.5,5,1.2,0,150],['Domates','domates',18,.9,3.9,.2,120,120],['Salatalık','salatalik|hiyar',15,.7,3.6,.1,150,150],['Avokado','avokado',160,2,9,15,150,150],['Somon','somon',208,20,0,13,0,150],['Balık','balik|levrek|cupra|hamsi',150,22,0,6,0,150],['Ton balığı','ton balik|ton',116,26,0,1,0,80],['Muz','muz',89,1.1,23,.3,120,120],['Elma','elma',52,.3,14,.2,180,180],['Portakal','portakal',47,.9,12,.1,200,200],['Mandalina','mandalina',53,.8,13,.3,80,160],['Armut','armut',57,.4,15,.1,180,180],['Kivi','kivi',61,1.1,15,.5,75,150],['Üzüm','uzum',69,.7,18,.2,5,100],['Çilek','cilek',32,.7,8,.3,15,150],['Karpuz','karpuz',30,.6,8,.2,0,300],['Fındık','findik',628,15,17,61,2,30],['Ceviz','ceviz',654,15,14,65,5,30],['Badem','badem',579,21,22,50,1.2,30],['Yer fıstığı','yer fistigi|fistik',567,26,16,49,1,30],['Fıstık ezmesi','fistik ezmesi',588,25,20,50,15,30],['Tahin','tahin',595,17,21,54,15,15],['Pekmez','pekmez',290,1,72,0,15,20],['Yulaf','yulaf',380,13,66,7,0,50],['Granola','granola|musli',450,10,64,17,0,40],['Mısır gevreği','gevrek|misir gevregi',370,7,84,1,0,40],['Çikolata','cikolata',540,6,60,31,5,30],['Bisküvi','biskuvi|gofret',450,7,70,15,8,30],['Kek','kek',400,5,55,18,0,70],['Baklava','baklava',430,6,50,24,40,100],['Sütlaç','sutlac',130,3.5,22,3,0,150],['Dondurma','dondurma',207,3.5,24,11,50,100],['Tatlı','tatli|pasta',350,4,50,15,0,100],['Cips','cips',536,6,53,34,0,30],['Kola','kola|cola|gazli icecek|fanta|sprite',42,0,10.6,0,0,330],['Meyve suyu','meyve suyu',46,.5,11,0,0,200],['Çay','cay',1,0,0,0,0,100],['Kahve','kahve',2,.1,0,0,0,60],['Latte','latte|cappuccino|kapucino',48,3,4.5,2,0,250],['Şeker','seker',387,0,100,0,5,5],['Whey protein','whey|protein tozu|protein',400,80,8,6,30,30],['Protein bar','protein bar',380,30,35,12,50,50],['Sucuk','sucuk',450,20,2,40,10,50],['Sosis','sosis',300,12,3,27,40,80],['Humus','humus',170,8,14,10,0,60]].map(e=>({n:e[0],kw:e[1].split('|'),k:e[2],p:e[3],c:e[4],f:e[5],a:e[6]||e[7],por:e[7]}));
+const NUM={yarim:.5,iki:2,uc:3,dort:4,bes:5},U='cay kasigi|yemek kasigi|kasik|gram|gr|kg|g|ml|litre|lt|l|adet|dilim|kase|bardak|porsiyon|tabak|olcek|kutu|top|avuc';
+function est1(raw){const s=nz(raw).replace(/\b(yarim|iki|uc|dort|bes)\b/g,x=>NUM[x]);let b=null,bl=0;
+ DB.forEach(e=>e.kw.forEach(k=>{if(k.length>bl&&new RegExp('(^|[^a-z])'+k).test(s)){b=e;bl=k.length}}));if(!b)return null;
+ const m=s.match(new RegExp('(\\d+(?:[.,]\\d+)?)\\s*('+U+')?(?![a-z])')),n=m?+m[1].replace(',','.'):1,u=m&&m[2],a=b.a||b.por;let g;
+ if(!m)g=b.por;else if(!u)g=n>=30?n:n*a;else g=({g:n,gr:n,gram:n,kg:n*1000,ml:n,l:n*1000,lt:n*1000,litre:n*1000,adet:n*a,dilim:n*a,kase:n*b.por,bardak:n*200,porsiyon:n*b.por,tabak:n*b.por*1.5,kasik:n*15,'yemek kasigi':n*15,'cay kasigi':n*5,olcek:n*30,kutu:n*330,top:n*50,avuc:n*30})[u];
+ return{e:b,g,k:b.k*g/100,p:b.p*g/100,c:b.c*g/100,f:b.f*g/100}}
+function estimate(t){const cu=S.cu||{},add=(r,x)=>['k','p','c','f'].forEach(i=>r[i]+=x[i]),r={k:0,p:0,c:0,f:0},ok=[],bad=[];
+ if(cu[nz(t.trim())]){add(r,cu[nz(t.trim())]);return{...r,ok:['kayıtlı değerin'],bad}}
+ t.split(/\s*(?:\+|,|\bve\b|\bile\b)\s*/i).filter(x=>x.trim()).forEach(x=>{const c=cu[nz(x.trim())];if(c){add(r,c);ok.push(x.trim()+' (kayıtlı)');return}const e=est1(x);if(e){add(r,e);ok.push(e.e.n+' '+f0(e.g)+' g')}else bad.push(x.trim())});
+ return ok.length?{...r,ok,bad}:null}
+const def=()=>({p:{age:23,sex:'m',h:175,w:75,act:1.35,goal:'keep',diet:'bal'},food:[],work:[],wt:[],cu:{},tasks:[]});
+let S=(()=>{try{return JSON.parse(localStorage.getItem(KEY))||def()}catch(e){return def()}})();
+S.cu=S.cu||{};S.tasks=S.tasks||[];
+function toDocs(){const o={profile:{p:S.p,cu:S.cu},tasks:{list:S.tasks}};new Set([...S.food,...S.work,...S.wt].map(x=>x.d)).forEach(d=>o['d_'+d]={food:S.food.filter(x=>x.d==d),work:S.work.filter(x=>x.d==d),wt:S.wt.find(x=>x.d==d)||null});return o}
+let wtm;const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(DBC){clearTimeout(wtm);wtm=setTimeout(dbSync,400)}};
+async function dbSync(){const o=toDocs();try{for(const k in o){const j=JSON.stringify(o[k]);if(CACHE[k]!==j){await DBC.doc(k).set(JSON.parse(j));CACHE[k]=j}}for(const k in CACHE)if(!(k in o)){await DBC.doc(k).delete();delete CACHE[k]}ST='db'}catch(e){ST='err';alert('Veritabanına kaydedilemedi, veri bu tarayıcıda duruyor.')}}
+const iso=d=>d.toLocaleDateString('sv'),dd=s=>new Date(s+'T12:00'),add=(s,n)=>{const d=dd(s);d.setDate(d.getDate()+n);return iso(d)};
+let cur=iso(new Date()),tab='today',uid=()=>Date.now()+Math.random();
+function curW(d){const w=S.wt.filter(x=>x.d<=d).sort((a,b)=>a.d<b.d?1:-1)[0];return w?w.kg:S.p.w}
+function T(d){const p=S.p,w=curW(d),bmr=10*w+6.25*p.h-5*p.age+(p.sex=='m'?5:-161),base=bmr*p.act,target=Math.max(base+G[p.goal][1],1200),m=D[p.diet];
+ return{w,bmr,base,target,adj:G[p.goal][1],mac:{p:target*m[1]/400,c:target*m[2]/400,f:target*m[3]/900}}}
+function day(d){const F=S.food.filter(x=>x.d==d),W=S.work.filter(x=>x.d==d),s=k=>F.reduce((a,x)=>a+x[k],0);
+ return{F,W,n:F.length,k:s('k'),p:s('p'),c:s('c'),f:s('f'),ex:W.reduce((a,x)=>a+x.k,0),min:W.reduce((a,x)=>a+x.m,0)}}
+function pbar(v,mx,col){return`<div class="bar"><i style="width:${Math.min(100,v/mx*100||0)}%;background:${col}"></i></div>`}
+function nav(){$('#nv').innerHTML=[['today','Bugün'],['task','Görevler'],['an','Analiz'],['set','Ayarlar'],['data','Veri']].map(t=>`<button class="${tab==t[0]?'on':''}" onclick="tab='${t[0]}';R()">${t[1]}</button>`).join('')}
+function R(){man=0;$('#dt').value=cur;nav();$('#v').innerHTML=({today:vToday,task:vTask,an:vAn,set:vSet,data:vData})[tab]()}
+function opts(arr,sel,fn){return arr.map((x,i)=>{const [v,l]=fn(x,i);return`<option value="${v}"${v==sel?' selected':''}>${l}</option>`}).join('')}
+
+function vToday(){const t=T(cur),d=day(cur),left=t.target+d.ex-d.k,pc=d.k/(t.target+d.ex)*100;
+ const mb=(n,v,m,c)=>`<div class="m">${n}: ${f0(v)} / ${f0(m)} g</div>${pbar(v,m,c)}`;
+ return`<div class="c" id="tb">${tBanner()}</div><div class="g"><div class="c"><h2>Kalori</h2><div class="big">${f0(d.k)} <span class="m">/ ${f0(t.target)} kcal</span></div>${pbar(d.k,t.target+d.ex,pc>110?'var(--r)':'var(--a)')}
+ <div class="m">${left>=0?`Kalan: <b>${f0(left)}</b> kcal`:`<b style="color:var(--r)">${f0(-left)} kcal fazla</b>`} (spor dahil) · Spor: ${f0(d.ex)} kcal</div></div>
+ <div class="c"><h2>Makrolar · ${D[S.p.diet][0]}</h2>${mb('Protein',d.p,t.mac.p,'var(--b)')}${mb('Karbonhidrat',d.c,t.mac.c,'var(--y)')}${mb('Yağ',d.f,t.mac.f,'var(--r)')}</div></div>
+ <div class="c"><h2>Yemek ekle</h2><div class="row"><label>Öğün<select id="fm">${opts(ML,0,x=>[x,x])}</select></label>
+ <label style="flex:3">Yemek<input id="fn" list="fl" oninput="fillF(1)" placeholder="Örn: 2 yumurta + 1 dilim ekmek, tavuk 200 g"></label><datalist id="fl">${DB.map(x=>`<option value="${x.n}">`).join('')}</datalist>
+ <label>Çarpan<input id="fq" type="number" step="0.25" value="1" oninput="fillF(1)"></label></div>
+ <div class="m" id="fh" style="min-height:20px;margin-bottom:6px"></div>
+ <div id="fr" class="m"></div>
+ <div class="row"><button class="b s" onclick="offSearch()">Yemek veritabanında ara</button></div>
+ <div class="row ${AI?'':'hide'}"><button class="b s" onclick="aiText()">AI ile hesapla</button><label class="${AIimg?'':'hide'}" style="flex:none;flex-direction:row;font-size:15px;cursor:pointer;padding:7px 9px;border:1px solid var(--ln);border-radius:7px;color:var(--tx)">Fotoğraf çek / seç<input type="file" accept="image/*" class="hide" onchange="aiPhoto(this)"></label></div>
+ <div class="row"><label>kcal<input id="fk" type="number" oninput="man=1"></label><label>Protein g<input id="fp" type="number" step="0.1" oninput="man=1"></label><label>Karb. g<input id="fc" type="number" step="0.1" oninput="man=1"></label><label>Yağ g<input id="ff" type="number" step="0.1" oninput="man=1"></label><button class="b" onclick="addF()">Ekle</button></div>
+ ${d.n?`<div class="sc"><table class="ed"><tr><th>Öğün</th><th>Yemek</th><th>kcal</th><th>P</th><th>K</th><th>Y</th><th></th></tr>${ML.flatMap(m=>d.F.filter(x=>x.m==m)).map(x=>`<tr><td><select onchange="upd('food','${x.id}','m',this.value)">${opts(ML,x.m,y=>[y,y])}</select></td><td><input class="t" value="${esc(x.n)}" onchange="upd('food','${x.id}','n',this.value)"></td>${['k','p','c','f'].map(q=>`<td><input type="number" step="0.1" value="${f1(x[q])}" onchange="upd('food','${x.id}','${q}',this.value)"></td>`).join('')}<td class="x"><button onclick="del('food','${x.id}')">×</button></td></tr>`).join('')}</table></div><p class="m">Satırlardaki yemek adı ve değerleri doğrudan değiştirebilirsin.</p>`:'<p class="m">Bu gün için yemek kaydı yok.</p>'}</div>
+ <div class="g"><div class="c"><h2>Spor ekle</h2><div class="row"><label style="flex:2">Tür<select id="wt">${opts(A,0,x=>[x[0],x[0]])}</select></label><label>Dakika<input id="wm" type="number" value="30"></label><button class="b" onclick="addW()">Ekle</button></div>
+ ${d.W.length?`<table class="ed">${d.W.map(x=>`<tr><td>${x.t}</td><td><input type="number" value="${x.m}" onchange="upd('work','${x.id}','m',this.value)"> dk</td><td><input type="number" value="${f0(x.k)}" onchange="upd('work','${x.id}','k',this.value)"> kcal</td><td class="x"><button onclick="del('work','${x.id}')">×</button></td></tr>`).join('')}</table>`:'<p class="m">Spor kaydı yok. Kalori, kilona ve sporun yoğunluğuna göre hesaplanır.</p>'}</div>
+ <div class="c"><h2>Kilo</h2><div class="row"><label>Kilo (kg)<input id="wv" type="number" step="0.1" value="${t.w}"></label><button class="b" onclick="addWt()">Kaydet</button></div><p class="m">Seçili tarih için kilo kaydeder; hedefler en son kiloya göre güncellenir.</p></div></div>`}
+let man=0,AI=null,AIimg=false,IMG=null,DLC=null,ot,OFF=[],OFFOK=true,ST='local',DBC=null,CACHE={};
+function fillF(r){if(r)man=0;if(man)return;clearTimeout(ot);const t=$('#fn').value,q=+$('#fq').value||1,e=t.trim()&&estimate(t),h=$('#fh');
+ if(!e){h.textContent=t.trim()?(AI?'Listede yok. "AI ile hesapla" düğmesini dene ya da değerleri kendin gir.':'Bu yemek için tahmin bulunamadı, değerleri kendin gir (bir sonraki sefer hatırlanır).'):'';['k','p','c','f'].forEach(i=>$('#f'+i).value='');if(t.trim().length>2&&OFFOK)ot=setTimeout(offSearch,700);return}
+ ['k','p','c','f'].forEach(i=>$('#f'+i).value=i=='k'?f0(e[i]*q):f1(e[i]*q));
+ h.textContent='Tahmin: '+e.ok.join(' + ')+(q!=1?' × '+q:'')+(e.bad.length?' · bulunamayan: '+e.bad.join(', '):'')+'. Değerleri değiştirebilirsin.'}
+function addF(){const n=$('#fn').value.trim(),k=+$('#fk').value;if(!n||!(k>=0)||$('#fk').value===''){alert('Yemek adı ve kalori gerekli.');return}
+ if(man){const q=+$('#fq').value||1;S.cu=S.cu||{};S.cu[nz(n)]={k:k/q,p:(+$('#fp').value||0)/q,c:(+$('#fc').value||0)/q,f:(+$('#ff').value||0)/q}}
+ S.food.push({id:uid(),d:cur,m:$('#fm').value,n,k,p:+$('#fp').value||0,c:+$('#fc').value||0,f:+$('#ff').value||0});save();R()}
+function addW(){const t=$('#wt').value,m=+$('#wm').value;if(!(m>0)){alert('Süre gir.');return}const met=A.find(a=>a[0]==t)[1];
+ S.work.push({id:uid(),d:cur,t,m,k:met*T(cur).w*m/60});save();R()}
+function addWt(){const kg=+$('#wv').value;if(!(kg>20)){alert('Geçerli kilo gir.');return}S.wt=S.wt.filter(x=>x.d!=cur);S.wt.push({d:cur,kg});save();R()}
+function del(k,id){S[k]=S[k].filter(x=>x.id!=id);save();R()}
+const esc=t=>String(t).replace(/"/g,'&quot;');
+function upd(k,id,f,v){const x=S[k].find(y=>y.id==id);if(!x)return;x[f]=(f=='n'||f=='m'&&k=='food')?v:(+v||0);if(k=='work'&&f=='m')x.k=A.find(a=>a[0]==x.t)[1]*T(x.d).w*x.m/60;save();R()}
+
+function bars(data,line){const W=640,H=190,pl=38,pb=24,pt=10,n=data.length,mx=Math.max(line||0,...data.map(d=>d.v||0),1)*1.1,bw=(W-pl-6)/n,ch=H-pt-pb;let s=`<svg viewBox="0 0 ${W} ${H}">`;
+ for(let i=0;i<=4;i++){const y=pt+ch*(1-i/4);s+=`<line x1="${pl}" x2="${W}" y1="${y}" y2="${y}" class="gl"/><text x="${pl-4}" y="${y+3}" class="tx" text-anchor="end">${f0(mx*i/4)}</text>`}
+ data.forEach((d,i)=>{const h=(d.v||0)/mx*ch,x=pl+i*bw+bw*.15;s+=`<rect x="${x}" y="${H-pb-h}" width="${bw*.7}" height="${h}" rx="2" fill="${d.c||'var(--a)'}"><title>${d.l}: ${f0(d.v||0)}</title></rect>`;if(n<=16||i%Math.ceil(n/14)==0)s+=`<text x="${x+bw*.35}" y="${H-8}" class="tx" text-anchor="middle">${d.l}</text>`});
+ if(line){const y=pt+ch*(1-line/mx);s+=`<line x1="${pl}" x2="${W}" y1="${y}" y2="${y}" stroke="var(--r)" stroke-dasharray="4 3"/>`}return s+'</svg>'}
+function lineC(p){if(p.length<2)return'<p class="m">Grafik için en az 2 kilo kaydı gerekli (Bugün sekmesinden ekle).</p>';const W=640,H=190,pl=40,pb=24,pt=10,vs=p.map(x=>x.v),mn=Math.min(...vs)-.5,mx=Math.max(...vs)+.5,
+ X=i=>pl+i*(W-pl-10)/(p.length-1),Y=v=>pt+(H-pt-pb)*(1-(v-mn)/(mx-mn));let s=`<svg viewBox="0 0 ${W} ${H}">`;
+ for(let i=0;i<=3;i++){const v=mn+(mx-mn)*i/3,y=Y(v);s+=`<line x1="${pl}" x2="${W}" y1="${y}" y2="${y}" class="gl"/><text x="${pl-4}" y="${y+3}" class="tx" text-anchor="end">${f1(v)}</text>`}
+ s+=`<polyline fill="none" stroke="var(--a)" stroke-width="2.5" points="${p.map((x,i)=>X(i)+','+Y(x.v)).join(' ')}"/>`;
+ p.forEach((x,i)=>{s+=`<circle cx="${X(i)}" cy="${Y(x.v)}" r="3.5" fill="var(--a)"><title>${x.l}: ${x.v} kg</title></circle>`;if(p.length<=12||i%Math.ceil(p.length/10)==0)s+=`<text x="${X(i)}" y="${H-8}" class="tx" text-anchor="middle">${x.l}</text>`});return s+'</svg>'}
+const hb=(l,v,mx,txt,c)=>`<div class="hb"><span>${l}</span>${pbar(v,mx,c||'var(--a)')}<span class="m">${txt}</span></div>`;
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0,sh=d=>{const x=dd(d);return x.getDate()+'.'+(x.getMonth()+1)};
+let RG=14;
+function vAn(){const ds=[...Array(RG)].map((_,i)=>add(cur,i-RG+1)),Rr=ds.map(d=>({d,...day(d),t:T(d)})),L=Rr.filter(r=>r.n>0);
+ if(!L.length)return`<div class="c"><h2>Analiz</h2><p>Henüz yemek kaydı yok. Bugün sekmesinden veri gir ya da Veri sekmesinden demo veri yükle.</p></div>`;
+ const aK=avg(L.map(r=>r.k)),aT=avg(L.map(r=>r.t.target)),aP=avg(L.map(r=>r.p)),aC=avg(L.map(r=>r.c)),aF=avg(L.map(r=>r.f)),aW=avg(L.map(r=>r.t.w)),
+ bal=L.map(r=>r.k-(r.t.base+r.ex)),sb=bal.reduce((a,b)=>a+b,0),est=sb/7700,ok=L.filter(r=>Math.abs(r.k-(r.t.target+r.ex))<=.1*(r.t.target+r.ex)).length,
+ exT=Rr.reduce((a,r)=>a+r.ex,0),minT=Rr.reduce((a,r)=>a+r.min,0),exD=Rr.filter(r=>r.ex>0).length;
+ const wts=S.wt.filter(x=>x.d>=ds[0]&&x.d<=cur).sort((a,b)=>a.d<b.d?-1:1),real=wts.length>1?wts[wts.length-1].kg-wts[0].kg:null;
+ const tot=aP*4+aC*4+aF*9||1,mp=[aP*4/tot*100,aC*4/tot*100,aF*9/tot*100],dm=D[S.p.diet];
+ const byType={};Rr.forEach(r=>r.W.forEach(w=>{byType[w.t]=byType[w.t]||{m:0,k:0};byType[w.t].m+=w.m;byType[w.t].k+=w.k}));const bt=Object.entries(byType).sort((a,b)=>b[1].k-a[1].k),bmx=bt.length?bt[0][1].k:1;
+ const fc={};L.forEach(r=>r.F.forEach(x=>{fc[x.n]=fc[x.n]||{c:0,k:0};fc[x.n].c++;fc[x.n].k+=x.k}));const tf=Object.entries(fc).sort((a,b)=>b[1].k-a[1].k).slice(0,6);
+ const wd=DN.map((n,i)=>{const x=L.filter(r=>dd(r.d).getDay()==i);return{l:n,v:x.length?avg(x.map(r=>r.k)):0}});
+ const mt={};ML.forEach(m=>{mt[m]=0});L.forEach(r=>r.F.forEach(x=>mt[x.m]+=x.k));const mtt=Object.values(mt).reduce((a,b)=>a+b,0)||1;
+ const best=L.reduce((a,b)=>Math.abs(a.k-a.t.target)<Math.abs(b.k-b.t.target)?a:b),hi=L.reduce((a,b)=>a.k>b.k?a:b);
+ const ins=[];const dif=(aK-aT)/aT*100;
+ ins.push(`Ortalama alımın ${f0(aK)} kcal, hedefin ${f0(aT)} kcal: hedefe göre ${dif>=0?'+':''}${f1(dif)}%.`);
+ ins.push(`${L.length} kayıtlı günün ${ok}'${ok%10==0||ok%10==9?'ı':'i'} hedef bandında (±%10). Kayıt sıklığı: ${L.length}/${RG} gün.`);
+ const pk=aP/aW;ins.push(`Protein ortalaman ${f0(aP)} g (kg başına ${f1(pk)} g). ${pk<1.2?'Aktif biri için düşük sayılır; 1.2–2.0 g/kg aralığı sık hedeflenir.':'Makul aralıkta.'}`);
+ if(Math.abs(mp[0]-dm[1])>6||Math.abs(mp[1]-dm[2])>8||Math.abs(mp[2]-dm[3])>8)ins.push(`Makro dağılımın (P/K/Y %${f0(mp[0])}/${f0(mp[1])}/${f0(mp[2])}) seçtiğin "${dm[0]}" planından (%${dm[1]}/${dm[2]}/${dm[3]}) belirgin ayrışıyor.`);
+ ins.push(`Tahmini enerji dengesi toplam ${sb>=0?'+':''}${f0(sb)} kcal, yani yaklaşık ${est>=0?'+':''}${f1(est)} kg. ${real!==null?`Tartıdaki gerçek değişim: ${real>=0?'+':''}${f1(real)} kg.`:'Karşılaştırmak için en az 2 kilo kaydı ekle.'}`);
+ const hw=wd.reduce((a,b)=>a.v>b.v?a:b);ins.push(`En yüksek kalorili gün tipin ${hw.l} (ortalama ${f0(hw.v)} kcal). En yüksek tek gün: ${sh(hi.d)} (${f0(hi.k)} kcal).`);
+ ins.push(`Spor: ${exD} günde toplam ${f0(minT)} dk, ${f0(exT)} kcal. ${exD<3*RG/7?'Haftada 3 günün altında kalıyor.':'Haftada 3+ gün düzeni var.'}`);
+ const ai=(n,v,u)=>`<div><span class="m">${n}</span><b>${v}</b>${u?`<span class="m">${u}</span>`:''}</div>`;
+ return`<div class="row"><label style="flex:none">Aralık<select onchange="RG=+this.value;R()">${[7,14,30,60].map(n=>`<option value="${n}"${n==RG?' selected':''}>Son ${n} gün</option>`).join('')}</select></label></div>
+ <div class="c"><div class="st">${ai('Ort. alınan',f0(aK),'kcal/gün')}${ai('Ort. hedef',f0(aT),'kcal/gün')}${ai('Hedefe uyum',ok+'/'+L.length,'gün')}${ai('Tahmini değişim',(est>=0?'+':'')+f1(est),'kg')}${ai('Spor',f0(exT),'kcal')}${ai('Ort. protein',f0(aP),'g/gün')}</div></div>
+ <div class="c"><h2>Günlük kalori (kırmızı çizgi: hedef)</h2>${bars(Rr.map(r=>({l:sh(r.d),v:r.n?r.k:0,c:r.n&&r.k>r.t.target+r.ex?'var(--r)':'var(--a)'})),aT)}</div>
+ <div class="g"><div class="c"><h2>Kilo trendi</h2>${lineC(wts.map(x=>({l:sh(x.d),v:x.kg})))}</div><div class="c"><h2>Günlük spor (kcal)</h2>${bars(Rr.map(r=>({l:sh(r.d),v:r.ex,c:'var(--g)'})))}</div></div>
+ <div class="g"><div class="c"><h2>Makro dağılımı (kalori %)</h2>${hb('Protein',mp[0],100,'%'+f0(mp[0])+' / hedef %'+dm[1],'var(--b)')}${hb('Karbonhidrat',mp[1],100,'%'+f0(mp[1])+' / hedef %'+dm[2],'var(--y)')}${hb('Yağ',mp[2],100,'%'+f0(mp[2])+' / hedef %'+dm[3],'var(--r)')}<h2 style="margin-top:14px">Öğünlere göre kalori</h2>${ML.map(m=>hb(m,mt[m],mtt,'%'+f0(mt[m]/mtt*100))).join('')}</div>
+ <div class="c"><h2>Spor türüne göre</h2>${bt.length?bt.map(([k,v])=>hb(k,v.k,bmx,f0(v.m)+' dk · '+f0(v.k)+' kcal','var(--g)')).join(''):'<p class="m">Spor kaydı yok.</p>'}<h2 style="margin-top:14px">Haftanın gününe göre ort. kalori</h2>${bars(wd)}</div></div>
+ <div class="c"><h2>En çok kalori getiren yemekler</h2>${tf.map(([n,v])=>hb(n,v.k,tf[0][1].k,v.c+'× · '+f0(v.k)+' kcal')).join('')}</div>
+ <div class="c"><h2>Çıkarımlar</h2><ul class="in">${ins.map(i=>`<li>${i}</li>`).join('')}</ul><p class="m">Tahminler formüllere dayanır (Mifflin-St Jeor, MET, 7700 kcal ≈ 1 kg); tıbbi tavsiye değildir.</p></div>`}
+
+function vSet(){const p=S.p,t=T(cur),hm=p.h/100,bmi=curW(cur)/(hm*hm);
+ return`<div class="c"><h2>Profil</h2><div class="row"><label>Yaş<input id="sa" type="number" value="${p.age}"></label><label>Cinsiyet<select id="ss">${opts([['m','Erkek'],['f','Kadın']],p.sex,x=>x)}</select></label><label>Boy (cm)<input id="sh" type="number" value="${p.h}"></label><label>Başlangıç kilosu (kg)<input id="sw" type="number" step="0.1" value="${p.w}"></label></div>
+ <div class="row"><label>Günlük hareket (spor hariç)<select id="sc">${opts(ACT,p.act,x=>x)}</select></label><label>Hedef<select id="sg">${opts(Object.entries(G),p.goal,x=>[x[0],x[1][0]])}</select></label><label>Diyet tarzı<select id="sd">${opts(Object.entries(D),p.diet,x=>[x[0],`${x[1][0]} (P${x[1][1]}/K${x[1][2]}/Y${x[1][3]})`])}</select></label></div><button class="b" onclick="saveP()">Kaydet</button></div>
+ <div class="c"><h2>Senin için hesaplananlar (${f1(t.w)} kg)</h2><div class="st"><div><span class="m">Bazal metabolizma</span><b>${f0(t.bmr)}</b>kcal</div><div><span class="m">Günlük harcama (spor hariç)</span><b>${f0(t.base)}</b>kcal</div><div><span class="m">Günlük kalori hedefi</span><b>${f0(t.target)}</b>kcal</div><div><span class="m">Protein / Karb. / Yağ</span><b>${f0(t.mac.p)}/${f0(t.mac.c)}/${f0(t.mac.f)}</b>gram</div><div><span class="m">VKİ</span><b>${f1(bmi)}</b>${bmi<18.5?'zayıf':bmi<25?'normal':bmi<30?'fazla kilolu':'obez'}</div><div><span class="m">Su önerisi</span><b>${f1(t.w*.035)}</b>litre</div><div><span class="m">Sağlıklı VKİ aralığı</span><b>${f0(18.5*hm*hm)}–${f0(24.9*hm*hm)}</b>kg</div></div></div>`}
+function saveP(){S.p={age:+$('#sa').value,sex:$('#ss').value,h:+$('#sh').value,w:+$('#sw').value,act:+$('#sc').value,goal:$('#sg').value,diet:$('#sd').value};save();R()}
+
+function vData(){return dTable()+rawData()+`<div class="c"><h2>Yedek ve dışa aktarma</h2><p class="m">Kayıt yeri: ${ST=='db'?'Claude veritabanı (telefon ve PC aynı veriyi görür)':ST=='err'?'veritabanı hatası, şimdilik yalnızca bu tarayıcı':'bu tarayıcı (tarayıcı verisini silersen kaybolur)'}. Ara sıra yedek almak iyi olur.</p><div class="row">
+ <button class="b" onclick="dl('fit-yedek.json',JSON.stringify(S))">Yedek indir (JSON)</button><button class="b s" onclick="csv('food')">Yemekler CSV</button><button class="b s" onclick="csv('work')">Sporlar CSV</button><button class="b s" onclick="csv('wt')">Kilolar CSV</button></div>
+ <div class="row"><label>Yedeği geri yükle<input type="file" accept=".json" onchange="imp(this)"></label></div></div>
+ <div class="c"><h2>Demo ve temizlik</h2><div class="row"><button class="b s" onclick="demo()">3 haftalık demo veri ekle</button><button class="b s" onclick="S.food=S.food.filter(x=>!x.z);S.work=S.work.filter(x=>!x.z);S.wt=S.wt.filter(x=>!x.z);save();R()">Demo verisini sil</button><button class="b d" onclick="if(this.dataset.o){S=def();save();R()}else{this.dataset.o=1;this.textContent='Emin misin? Tekrar tıkla'}">Her şeyi sil</button></div></div>`}
+const sg=v=>v===''?'':(v>0?'+':'')+v;
+function rows(){const ds=[...new Set([...S.food.map(x=>x.d),...S.work.map(x=>x.d),...S.wt.map(x=>x.d)])].sort();let pk=null,pw=null;
+ return ds.map(d=>{const y=day(d),t=T(d),w=S.wt.find(x=>x.d==d),r={d,k:y.n?f0(y.k):'',p:y.n?f0(y.p):'',c:y.n?f0(y.c):'',f:y.n?f0(y.f):'',t:f0(t.target),ex:f0(y.ex),kg:w?w.kg:'',dk:y.n&&pk!==null?f0(y.k-pk):'',dw:w&&pw!==null?f1(w.kg-pw):'',b:y.n?f0(y.k-(t.base+y.ex)):''};if(y.n)pk=y.k;if(w)pw=w.kg;return r})}
+function dTable(){const r=rows().reverse();return`<div class="c"><h2>Günlük kayıt tablosu</h2><p class="m">Her günün özeti burada tutulur. Düzenle ile o güne gidip yemek, spor ve kilo kayıtlarını değiştirebilirsin.</p>${r.length?charts():''}${r.length?`<div class="sc"><table><tr><th>Tarih</th><th>Kalori</th><th>P</th><th>K</th><th>Y</th><th>Hedef</th><th>Spor</th><th>Kilo</th><th>Δ kalori</th><th>Δ kilo</th><th>Denge</th><th></th></tr>${r.map(x=>`<tr><td>${x.d.split('-').reverse().join('.')} ${DN[dd(x.d).getDay()]}</td><td>${x.k}</td><td>${x.p}</td><td>${x.c}</td><td>${x.f}</td><td>${x.t}</td><td>${x.ex}</td><td>${x.kg}</td><td>${sg(x.dk)}</td><td>${sg(x.dw)}</td><td>${sg(x.b)}</td><td><button class="b s" onclick="cur='${x.d}';tab='today';R()">Düzenle</button></td></tr>`).join('')}</table></div><div class="row" style="margin-top:8px"><button class="b s" onclick="csv2()">Bu tabloyu indir (CSV)</button></div>`:'<p class="m">Henüz kayıt yok.</p>'}<p class="m">Denge: alınan kalori − tahmini harcama. Δ: önceki kayıtlı güne göre değişim.</p></div>`}
+function charts(){const all=rows(),z=all.filter(x=>x.k!=='').slice(-30),w=all.filter(x=>x.kg!=='').slice(-30),tg=z.length?avg(z.map(x=>+x.t)):0;
+ return`<div class="g"><div><h2>Kalori (kırmızı çizgi: ort. hedef)</h2>${bars(z.map(x=>({l:sh(x.d),v:+x.k,c:+x.k>+x.t+ +x.ex?'var(--r)':'var(--a)'})),tg)}</div><div><h2>Kilo (kg)</h2>${lineC(w.map(x=>({l:sh(x.d),v:+x.kg})))}</div><div><h2>Protein (g)</h2>${bars(z.map(x=>({l:sh(x.d),v:+x.p,c:'var(--b)'})))}</div><div><h2>Spor (kcal)</h2>${bars(all.slice(-30).map(x=>({l:sh(x.d),v:+x.ex,c:'var(--g)'})))}</div></div>`}
+const hx=t=>String(t??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+async function offSearch(){const q=$('#fn').value.trim(),r=$('#fr');if(!r||q.length<3)return;r.textContent='Open Food Facts\'te aranıyor…';
+ try{const j=await(await fetch('https://world.openfoodfacts.org/cgi/search.pl?search_simple=1&action=process&json=1&lc=tr&page_size=12&fields=product_name,brands,nutriments&search_terms='+encodeURIComponent(q),{signal:AbortSignal.timeout(12000)})).json();
+  OFF=(j.products||[]).filter(x=>x.product_name&&x.nutriments&&x.nutriments['energy-kcal_100g']!=null);
+  r.innerHTML=OFF.length?'<label style="max-width:120px">Gram<input id="fg" type="number" value="100"></label>'+OFF.map((x,i)=>`<div class="tk"><button class="b s" style="text-align:left" onclick="pickOff(${i})">${hx(x.product_name)}${x.brands?' · '+hx(x.brands.split(',')[0]):''} — ${f0(x.nutriments['energy-kcal_100g'])} kcal/100 g</button></div>`).join(''):'Veritabanında sonuç yok.'}
+ catch(e){r.textContent='Veritabanına ulaşılamadı (internet yok ya da servis yanıt vermedi). Biraz sonra "Yemek veritabanında ara" ile tekrar dene ya da değerleri kendin gir, kaydedilir.'}}
+function pickOff(i){const x=OFF[i],g=+$('#fg').value||100,n=x.nutriments,v=k=>(+n[k]||0)*g/100;$('#fn').value=x.product_name+' '+g+' g';$('#fk').value=f0(v('energy-kcal_100g'));$('#fp').value=f1(v('proteins_100g'));$('#fc').value=f1(v('carbohydrates_100g'));$('#ff').value=f1(v('fat_100g'));man=1;$('#fh').textContent='Open Food Facts verisi ('+g+' g). Değerleri değiştirebilirsin.';$('#fr').textContent=''}
+const TM=t=>new Date(t.d+'T'+(t.tm||'09:00')),tEnd=t=>new Date(+TM(t)+t.h*36e5);
+function tinfo(t){const n=Date.now(),s=+TM(t),e=+tEnd(t);if(t.done)return['Yapıldı','var(--g)'];if(n>e)return['Gecikti','var(--r)'];if(n>=s)return['Şimdi','var(--y)'];const m=Math.round((s-n)/6e4);return[m<60?m+' dk sonra':m<1440?Math.floor(m/60)+' sa '+m%60+' dk sonra':Math.floor(m/1440)+' gün sonra',m<=120?'var(--y)':'var(--mu)']}
+function tBanner(){const n=Date.now(),td=iso(new Date()),all=S.tasks.filter(t=>t.d==td),dn=all.filter(t=>t.done),hs=a=>a.reduce((x,t)=>x+(+t.h||0),0),L=S.tasks.filter(t=>!t.done&&+TM(t)<=n+1.08e7&&+tEnd(t)>=n-864e5).sort((a,b)=>TM(a)-TM(b)).slice(0,5);
+ return`<h2>Görevler <button class="b s" style="float:right;padding:3px 10px" onclick="tab='task';R()">Aç</button></h2>`+(all.length?`<div class="m">Bugün ${dn.length}/${all.length} görev tamamlandı · ${f1(hs(dn))}/${f1(hs(all))} saat</div>`:'<div class="m">Bugün için görev yok.</div>')+(L.length?'<div class="m" style="margin-top:6px">Yakında yapman gerekenler:</div>':'')+L.map(t=>{const i=tinfo(t);return`<div class="tk"><input type="checkbox" onchange="tg('${t.id}')"><span style="flex:1"><b>${t.tm}</b> ${hx(t.t)} <span class="m">(${t.h} sa)</span></span><span style="color:${i[1]}">${i[0]}</span></div>`}).join('')}
+function vTask(){const by=a=>a.sort((x,y)=>(x.d+x.tm)>(y.d+y.tm)?1:-1),dy=by(S.tasks.filter(t=>t.d==cur)),up=by(S.tasks.filter(t=>t.d>cur&&!t.done)),late=by(S.tasks.filter(t=>t.d<cur&&!t.done)),old=by(S.tasks.filter(t=>t.d<cur&&t.done)).slice(-10),sm=a=>a.reduce((x,t)=>x+(+t.h||0),0);
+ const tb=(a,e)=>a.length?`<table>${a.map(t=>{const i=tinfo(t);return`<tr><td style="width:28px"><input type="checkbox" ${t.done?'checked':''} onchange="tg('${t.id}')"></td><td>${a===dy?'':t.d.slice(5).split('-').reverse().join('.')+' '}${t.tm}–${tEnd(t).toTimeString().slice(0,5)}</td><td${t.done?' style="text-decoration:line-through;color:var(--mu)"':''}>${hx(t.t)}</td><td>${t.h} sa</td><td style="color:${i[1]}">${i[0]}</td><td class="x"><button onclick="del('tasks','${t.id}')">×</button></td></tr>`}).join('')}</table>`:`<p class="m">${e}</p>`;
+ return`<div class="c"><h2>Görev ekle</h2><div class="row"><label style="flex:3">Görev<input id="tt" placeholder="Örn: Etsy listing yaz, ders, spor"></label><label>Tarih<input id="td" type="date" value="${cur}"></label><label>Saat<input id="tm" type="time" value="09:00"></label><label>Süre (saat)<input id="th" type="number" step="0.25" min="0.25" value="1"></label><button class="b" onclick="addT()">Ekle</button></div></div>
+<div class="c"><h2>${cur.split('-').reverse().join('.')}</h2><div class="m">Planlı ${f1(sm(dy))} sa · yapılan ${f1(sm(dy.filter(t=>t.done)))} sa</div>${tb(dy,'Bu gün için görev yok.')}</div>${late.length?`<div class="c"><h2>Tamamlanmamış (geçmiş)</h2>${tb(late)}</div>`:''}<div class="c"><h2>Yaklaşan</h2>${tb(up,'Yaklaşan görev yok.')}</div>${old.length?`<div class="c"><h2>Son tamamlananlar</h2>${tb(old)}</div>`:''}`}
+function addT(){const t=$('#tt').value.trim(),d=$('#td').value,tm=$('#tm').value||'09:00',h=+$('#th').value;if(!t||!d||!(h>0)){alert('Görev adı, tarih ve süre gerekli.');return}S.tasks.push({id:uid(),t,d,tm,h,done:0});save();R()}
+function tg(id){const x=S.tasks.find(y=>y.id==id);if(!x)return;x.done=x.done?0:1;x.dn=x.done?new Date().toISOString():null;save();R()}
+function rawData(){const ds=a=>a.slice().sort((x,y)=>(y.d||'')>(x.d||'')?1:-1),
+ T2=(h,r)=>`<div class="sc"><table><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr>${r.map(x=>`<tr>${x.map(c=>`<td>${hx(c)}</td>`).join('')}</tr>`).join('')}</table></div>`,
+ B=(t,n,b)=>`<details class="c"><summary><b>${t}</b> <span class="m">(${n} kayıt)</span></summary><div style="margin-top:8px">${n?b:'<p class="m">Kayıt yok.</p>'}</div></details>`;
+ return'<h2 style="margin:6px 0">Ham veri (kaydedilen her şey)</h2>'+
+ B('Yemek kayıtları',S.food.length,T2(['Tarih','Öğün','Yemek','kcal','P','K','Y'],ds(S.food).map(x=>[x.d,x.m,x.n,f0(x.k),f1(x.p),f1(x.c),f1(x.f)])))+
+ B('Spor kayıtları',S.work.length,T2(['Tarih','Tür','Dk','kcal'],ds(S.work).map(x=>[x.d,x.t,x.m,f0(x.k)])))+
+ B('Kilo kayıtları',S.wt.length,T2(['Tarih','Kg'],ds(S.wt).map(x=>[x.d,x.kg])))+
+ B('Görevler',S.tasks.length,T2(['Tarih','Saat','Süre (sa)','Görev','Durum'],ds(S.tasks).map(x=>[x.d,x.tm,x.h,x.t,x.done?'Yapıldı':'Bekliyor'])))+
+ B('Kayıtlı yemeklerim',Object.keys(S.cu).length,T2(['Yazım','kcal','P','K','Y'],Object.entries(S.cu).map(([k,v])=>[k,f0(v.k),f1(v.p),f1(v.c),f1(v.f)])))+
+ B('Profil ve ayarlar',1,T2(['Yaş','Cinsiyet','Boy','Kilo','Hareket','Hedef','Diyet'],[[S.p.age,S.p.sex=='m'?'Erkek':'Kadın',S.p.h,S.p.w,S.p.act,G[S.p.goal][0],D[S.p.diet][0]]]))}
+async function aiText(){const t=$('#fn').value.trim();if(!t){alert('Önce yemeği yaz.');return}aiRun('Yemek: "'+t+'"')}
+function aiPhoto(i){const f=i.files[0];if(!f)return;if(IMG&&f.size>IMG.maxInputBytes){alert('Fotoğraf çok büyük.');return}const n=$('#fn').value.trim();aiRun('Fotoğraftaki yemek(ler)'+(n?' (kullanıcı notu: '+n+')':''),[f],1)}
+async function aiRun(d,im,ph){const h=$('#fh'),q=+$('#fq').value||1;h.textContent='Claude analiz ediyor…';
+ try{const r=await AI.json(`Sen bir beslenme uzmanısın. ${d}. Porsiyonu gerçekçi tahmin et (miktar yazılmışsa ona uy). SADECE şu JSON'u döndür, başka metin yok: {"ad":"kısa Türkçe yemek adı ve tahmini miktar","kcal":0,"protein":0,"karb":0,"yag":0,"not":"tek cümlelik varsayım"}`,im?{images:im}:{modelTier:'quick'});
+  if(ph||!$('#fn').value.trim())$('#fn').value=r.ad;
+  $('#fk').value=f0(+r.kcal*q);$('#fp').value=f1(+r.protein*q);$('#fc').value=f1(+r.karb*q);$('#ff').value=f1(+r.yag*q);man=1;
+  h.textContent='AI tahmini: '+r.ad+'. '+(r.not||'')+' Değerleri değiştirebilirsin.'}
+ catch(e){h.textContent=e&&e.code=='not_granted'?'AI izni verilmedi.':'AI cevap veremedi, değerleri kendin gir.'}}
+function csv2(){const r=rows().reverse();dl('gunluk-tablo.csv','\ufeffTarih,Kalori,Protein,Karbonhidrat,Yag,Hedef,Spor kcal,Kilo,Delta kalori,Delta kilo,Denge\n'+r.map(x=>[x.d,x.k,x.p,x.c,x.f,x.t,x.ex,x.kg,x.dk,x.dw,x.b].join(',')).join('\n'))}
+async function dl(n,t){try{if(DLC){await DLC.save({filename:n,data:t});return}}catch(e){return}const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/plain'}));a.download=n;a.click()}
+function csv(k){const r=S[k];if(!r.length){alert('Kayıt yok.');return}const h=Object.keys(r[0]).filter(x=>x!='id'&&x!='z');dl(k+'.csv','\ufeff'+h.join(',')+'\n'+r.map(x=>h.map(c=>JSON.stringify(x[c]??'')).join(',')).join('\n'))}
+function imp(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o.p||!o.food)throw 0;S=o;S.cu=S.cu||{};S.tasks=S.tasks||[];save();R()}catch(e){alert('Geçersiz yedek dosyası.')}};r.readAsText(f)}
+function demo(){const t0=iso(new Date());const w0=S.p.w+1.2;for(let i=20;i>=0;i--){const d=add(t0,-i);ML.forEach((m,j)=>{const c=j==3?1:j==0?2:2;for(let n=0;n<c;n++){const x=DB[Math.floor(Math.random()*DB.length)],g=x.por;S.food.push({id:uid(),d,m,n:x.n,k:x.k*g/100,p:x.p*g/100,c:x.c*g/100,f:x.f*g/100,z:1})}});
+  if(Math.random()<.45){const a=A[Math.floor(Math.random()*5)],m=[30,45,60][Math.floor(Math.random()*3)];S.work.push({id:uid(),d,t:a[0],m,k:a[1]*w0*m/60,z:1})}
+  if(i%3==0)S.wt.push({d,kg:f1(w0-(20-i)*.05+(Math.random()-.5)*.4),z:1})}save();tab='an';R()}
+(async()=>{try{if(typeof claude=='undefined')return;OFFOK=false;DLC=await claude.use('downloads');AI=await claude.use('sample');if(AI){const l=await AI.limits().catch(()=>null);if(l&&l.images){AIimg=true;IMG=l.images}}
+ const db=await claude.use('db'),us=await claude.use('user');if(db&&us){const id=await us.id();if(id){const c=db.collection('data/users/'+id),sn=await c.get();if(sn.docs.length){const n=def();sn.docs.forEach(d=>{const v=JSON.parse(JSON.stringify(d.data())),k=d.id;if(k=='profile'){n.p=v.p||n.p;n.cu=v.cu||{}}else if(k=='tasks')n.tasks=v.list||[];else if(k.startsWith('d_')){n.food.push(...(v.food||[]));n.work.push(...(v.work||[]));if(v.wt)n.wt.push(v.wt)}});S=n;const o=toDocs();for(const k in o)CACHE[k]=JSON.stringify(o[k])}
+ DBC=c;ST='db';if(!sn.docs.length)dbSync()}}R()}catch(e){R()}})();
+setInterval(()=>{const e=$('#tb');if(e)e.innerHTML=tBanner()},30000);
+R();
+</script></body></html>
